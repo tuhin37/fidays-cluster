@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: uptime
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptimekuma
+  namespace: uptime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uptimekuma
+  template:
+    metadata:
+      labels:
+        app: uptimekuma
+    spec:
+      containers:
+      - name: uptimekuma
+        image: friggacloudlabs/uptime-kuma:1.23.3-alpine
+        ports:
+        - containerPort: 3001
+        env:
+        - name: MONGO_CONNECTION_STRING
+          value: "mongodb://mongodb:27017/uptimekuma"
+        # Add any additional environment variables as needed
+        # Add volumes, volume mounts, and other configuration as needed
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"
+      nodeSelector:
+        size: cr-28           
+        intent: frigga
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptimekuma
+  namespace: uptime
+spec:
+  selector:
+    app: uptimekuma
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
+  type: ClusterIP
+
+---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: uptime-ir
+#   namespace: uptime
+# spec:
+#   entryPoints:
+#     - websecure
+#   routes:
+#     - match: Host(`uptime.frigga.cloud`)
+#       kind: Rule
+#       services:
+#         - name: uptimekuma
+#           port: 80
+#   tls:
+#     certResolver: letsencrypt-prod

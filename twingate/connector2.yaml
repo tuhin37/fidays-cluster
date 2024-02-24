@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twingate-melodic-pogona
+  namespace: twingate
+spec:
+  replicas: 1  # Set the desired number of replicas
+  selector:
+    matchLabels:
+      app: twingate-melodic-pogona
+  template:
+    metadata:
+      labels:
+        app: twingate-melodic-pogona
+    spec:
+      containers:
+      - name: twingate-connector
+        image: friggacloudlabs/connector:1
+        env:
+        - name: TWINGATE_NETWORK
+          value: "frigganet"
+        - name: TWINGATE_ACCESS_TOKEN
+          value: "eyJhbGciOiJFUzI1NiIsImtpZCI6InRSNEtCWkc2VHdQYVdqcmxCT0swTTV1NG5Ub0lSdVdUVGZWVWZ3akdaQVUiLCJ0eXAiOiJEQVQifQ.eyJudCI6IkFOIiwiYWlkIjoiMTg1NTkxIiwiZGlkIjoiMTA1NTc5MyIsImp0aSI6ImMyN2ZkNmNiLTk0N2ItNDVlOS05YzE3LTQ1NWIzZGM1ZmQyYSIsImlzcyI6InR3aW5nYXRlIiwiYXVkIjoiZnJpZ2dhbmV0IiwiZXhwIjoxNzAwMTQ2ODgyLCJpYXQiOjE3MDAxNDMyODIsInZlciI6IjQiLCJ0aWQiOiI2MTE4NiIsInJudyI6MTcwMDE0MzU4Miwicm5ldGlkIjoiNzY2NzgifQ.HEoxuH6seKiElb0NiUCQR75z7YtRt2v1lfqoviyiYXxleeYFfioiCL3R6AEob7KooiWdHTeVw8brQpCOvdqscg"
+        - name: TWINGATE_REFRESH_TOKEN
+          value: "851I3XZO5bfP4CF5d9cNnAht1UkkffjeeSgzgotETyTJylOxYPLdDgGQoRWvpjceZLOEDQbE0LtG3W6aILUvZHRolooFxQx6fbYVyZpzLrY8TIURoEoSdAK2Xk4WZWsCbpumWQ"
+        - name: TWINGATE_LABEL_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: TWINGATE_LOG_ANALYTICS
+          value: "v2"
+        - name: SYSCTL_NET_IPV4_PING_GROUP_RANGE
+          value: "0 2147483647"
+        # Add any additional environment variables as needed
+        resources:
+          # Add resource requests and limits if necessary
+      restartPolicy: Always  # or set to your desired restart policy
+      nodeSelector:      
+        size: cr-28           
+        intent: frigga
+      
+

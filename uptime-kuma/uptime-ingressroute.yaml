@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: uptime-ir
+  namespace: uptime
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`foo.frigga.cloud`)
+      kind: Rule
+      services:
+        - name: uptimekuma
+          port: 80
+  tls:
+    certResolver: letsencrypt-prod

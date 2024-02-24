@@ -1,0 +1,27 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJME1ESXlOREUzTkRneU1Gb1hEVE0wTURJeU1URTNORGd5TUZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTzNhCjVWQkRsZ05jZDVHMzk3SGVOZytBMXhCZHVLVkszRVZpWnlITnUzcVNTMXNrdFBaYzJxRVZnSFp3NnM0b0V3NHkKRzVuUU9xRXJYQUlhSzJWSWI0NSt4cFVuWkcrNS9xUCtXaUw0SFVSUkI1UlhJYzF4ekVEUnN3TUdJN0Y3bzdzZQpHOGRJK0kzNGd0a1k2WnBVbGN4VTU0QkNOTUJnV2hzcU9pQ3I5VDVIZnFCSHhiMkpKSDk2alNyVlBKR1ZVcTlOCkkxYWgxZlRINVpxeHUweGhicWFuai84QTdkZ3Z5RndYTWlaazEwTCt3MlV4Z2FSMElMbkZ0NUsybXZGSzdPNVYKdTdzZkpkSERKVGRRNFVmdWFsZlRZaThKT1RrenZ0NVh6eTgvTERvMkI4WVd2RFF2SVRXaEwrQ1dlREhwODdaUQpySkh0OEhqNHlrWCtKUytaZGFjQ0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZGaDhzRUh5QWVZc2hlV3R2a1I0T0hSTC9NaFdNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBTlQzemY2RERFTVlzdFZueFpXbgpmcmw0bU9CT3o1M0xyTGdsWUc5c1FLZm1lSzl0YnJQaElucW1EeFFLV0ppSnZsT3ZGZkhoYmJXNEZ0VUo2VlF2ClVaUXd1cTh3RDZDSkFZd1lFS1pBSURxV1FDb0h5UDZiWUFuTmt2VSt6VDROMmV5VElQMXkwSWJYTXlvL09SK2oKcEZmeE52KzZyMVg5ZTJlYWNCR3BwZTB6YlJhaTlodko5QVBUWmFpeFpvSGpIc0lSWjJoWVBLWVNxdzBmbEdEMApuZW9INnMyenNpZ01OSU9uUjhla2Y4OVBPZ1c0czlMM1l6TERybkFwWVF2VEdOdkdtb0tBRXNNTC9RS0g2Q0JkClBIMFM4Vk1LS21McHoxVXV6Q1R0VEVmTElybDNFYm01UnpwalFNZ0tYYTRwYWNibFBXMEJhWlM1WG5raGNLVHUKRU1ZPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    server: https://26824BEEDB5DDE6825E00287C5936871.gr7.ap-south-1.eks.amazonaws.com
+  name: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+contexts:
+- context:
+    cluster: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+    user: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+  name: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+current-context: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+kind: Config
+preferences: {}
+users:
+- name: arn:aws:eks:ap-south-1:203392888651:cluster/fidays-cluster
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      args:
+      - --region
+      - ap-south-1
+      - eks
+      - get-token
+      - --cluster-name
+      - fidays-cluster
+      command: aws

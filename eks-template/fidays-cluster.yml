@@ -1,0 +1,1086 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: fidays-cluster # generic name `frigga-<client-name>-<environment-name>` e.g. `frigga-pichain-dev`
+  region: ap-south-1 # mumbai
+  version: "1.24" # kubernetes version
+  tags:
+    frigga-resource: cluster # identify frigga resources from cloud providers colsole
+availabilityZones: ["ap-south-1a", "ap-south-1b", "ap-south-1c"]
+nodeGroups:
+  # ----------------------- frigga apps -----------------------
+  - name: ng-premium-base-28
+    instanceType: t3a.large # $36/month
+    volumeSize: 64 # $12/month EBS volume size
+    volumeType: gp3
+    minSize: 1 # $48/node
+    maxSize: 10
+    desiredCapacity: 1
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: frigga # intended to run frigga-suite (third party open source tools, e.g. argo, longhorn etc.), frigga-system(tools developped by frigga) and frigga-plugins (tools developed for frigga by others)
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: frigga
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-base-416
+    instanceType: t3a.xlarge # $72/month
+    volumeSize: 256 # $24/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $96/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: frigga # intended to run frigga-suite (third party open source tools, e.g. argo, longhorn etc.), frigga-system(tools developped by frigga) and frigga-plugins (tools developed for frigga by others)
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: frigga
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 3200MiB or RAM before once is evicted
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-base-416
+    instancesDistribution:
+      instanceTypes: ["t3a.xlarge", "t3.xlarge", "t2.xlarge"] # [$28, $53, $50]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $44/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 256 # $24/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $68/month
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: frigga # intended to run frigga-suite (third party open source tools, e.g. argo, longhorn etc.), frigga-system(tools developped by frigga) and frigga-plugins (tools developed for frigga by others)
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: frigga
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 3200MiB or RAM before once is evicted
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  # -------------------- disaster recovery --------------------
+  - name: ng-premium-dr-128G
+    instanceType: t3a.small # $14/month
+    volumeSize: 128 # $12/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $26/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-128G # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-128G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-256G
+    instanceType: t3a.small # $14/month
+    volumeSize: 256 # $24/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $38/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-256G # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-256G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-512G
+    instanceType: t3a.small # $14/month
+    volumeSize: 512 # $47/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $61/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-512G # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-512G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-1T
+    instanceType: t3a.small # $14/month
+    volumeSize: 1024 # $94/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $108/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-1T # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-1T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-2T
+    instanceType: t3a.small # $14/month
+    volumeSize: 2048 # $187/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $200/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-2T # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-2T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-4T
+    instanceType: t3a.small # $14/month
+    volumeSize: 4096 # $374/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $388/node
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-4T # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-4T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-dr-x
+    instanceType: t3a.small # $14/month
+    volumeSize: 20 # $1/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $15/node + EBS(sc1)-cost: $0.0174 per GB-month
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    amiFamily: Ubuntu2004
+    ssh:
+      publicKeyPath: /home/drag/.ssh/id_rsa.pub # TODO generate for each client
+      allow: true
+    taints: # only longhorn apps will run
+      - key: apps
+        value: non-longhorn
+        effect: NoSchedule
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-22 # this node has 2vCPU and 2GB RAM
+      intent: dr-x # intended to run longhorn pods
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-22
+      k8s.io/cluster-autoscaler/node-template/label/intent: dr-x
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 1748Mi (2048MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 1448Mi (3796MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 1248MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  # ------------------------ stateful -------------------------
+  - name: ng-premium-stateful-128G-28
+    instanceType: t3a.large # $36/month
+    volumeSize: 128 # $12/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $48/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # Tall nodes are on-demand
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: stateful-128G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-128G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateful-128G-28
+    instancesDistribution:
+      instanceTypes: ["t3a.large", "t3.large", "t2.large"] # [$13, $31, $31]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $24/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 128 # $12/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $36/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: stateful-128G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-128G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateful-256G-416
+    instanceType: t3a.xlarge # $72/month
+    volumeSize: 256 # $24/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $96/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateful-256G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-256G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 15584MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateful-256G-416
+    instancesDistribution:
+      instanceTypes: ["t3a.xlarge", "t3.xlarge", "t2.xlarge"] # [$28, $53, $50]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $44/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 256 # $24/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $68/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateful-256G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-256G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 15584MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateful-512G-416
+    instanceType: t3a.xlarge # $72/month
+    volumeSize: 512 # $47/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $119/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateful-512G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-512G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateful-512G-416
+    instancesDistribution:
+      instanceTypes: ["t3a.xlarge", "t3.xlarge", "t2.xlarge"] # [$28, $53, $50]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $44/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 512 # $47/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $91/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateful-512G # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-512G
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateful-512G-832
+    instanceType: t3a.2xlarge # $144/month
+    volumeSize: 512 # $47/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $191/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateful-1T # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-1T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateful-512G-832
+    instancesDistribution:
+      instanceTypes: ["t3a.2xlarge", "t3.2xlarge", "t2.2xlarge"] # [$54, $92, $104]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $84/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 512 # $47/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $131/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateful-1T # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-1T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateful-1T-832
+    instanceType: t3a.2xlarge # $144/month
+    volumeSize: 1024 # $94/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $238/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateful-1T # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-1T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateful-1T-832
+    instancesDistribution:
+      instanceTypes: ["t3a.2xlarge", "t3.2xlarge", "t2.2xlarge"] # [$54, $92, $104]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $84/node
+      spotAllocationStrategy: capacity-optimized
+    volumeSize: 1024 # $94/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $178/node
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateful-1T # intended to client's stateful workloads
+      storage: longhorn # longhorn will be enabled
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateful-1T
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
+    iam:
+      withAddonPolicies:
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  # also you can dunamically/on-demand create and add
+  # stateful node-groups as per clienrs specifications here
+  # ------------------------ stateless ------------------------
+  - name: ng-premium-stateless-28
+    instanceType: t3a.large # $36/month
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $37/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateless-28
+    instancesDistribution:
+      instanceTypes: ["t3a.large", "t3.large", "t2.large"] # [$13, $31, $31]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $24/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $26/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateless-416
+    instanceType: t3a.xlarge # $72/month
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $74/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 15584MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateless-416
+    instancesDistribution:
+      instanceTypes: ["t3a.xlarge", "t3.xlarge", "t2.xlarge"] # [$28, $53, $50]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $44/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $45/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-416 # this node has 4vCPU and 16GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-416
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 3700m (4000m-300m)
+        memory: "300Mi" # effective available 16084Mi (16384MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 3400m (3700m-300m)
+        memory: "300Mi" # effective available 15784Mi (16084MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 15584MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-stateless-832
+    instanceType: t3a.2xlarge # $144/month
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $146/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-spot-stateless-832
+    instancesDistribution:
+      instanceTypes: ["t3a.2xlarge", "t3.2xlarge", "t2.2xlarge"] # [$54, $92, $104]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0 # ~ $84/node
+      spotAllocationStrategy: capacity-optimized
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0 # ~ $86/node
+    amiFamily: Ubuntu2004
+    labels:
+      lifecycle: spot # all nodes are spot
+      size: cr-832 # this node has 8vCPU and 32GB RAM
+      intent: stateless # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: spot
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-832
+      k8s.io/cluster-autoscaler/node-template/label/intent: stateless
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 7700m (8000m-300m)
+        memory: "300Mi" # effective available 32468Mi (32768MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 7400m (7700m-300m)
+        memory: "300Mi" # effective available 32168 Mi (32468MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 32168MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  - name: ng-premium-jf-28 # This nodegroup is custom created to run jellyfin in it
+    instanceType: t3a.large # $36/month
+    volumeSize: 20 # $2/month EBS volume size
+    volumeType: gp3
+    minSize: 0 # $37/node
+    maxSize: 10
+    desiredCapacity: 0
+    amiFamily: Ubuntu2004
+    ssh:
+      publicKeyPath: /home/drag/.ssh/id_rsa.pub
+    availabilityZones: ["ap-south-1b"] # specify AZ to minimize east-west traffic cost
+    labels:
+      lifecycle: premium # all nodes are on-demand
+      size: cr-28 # this node has 2vCPU and 8GB RAM
+      intent: jf # intended to client's stateless workloads
+      aws.amazon.com/spot: "true"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
+      k8s.io/cluster-autoscaler/node-template/label/size: cr-28
+      k8s.io/cluster-autoscaler/node-template/label/intent: jf
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        awsLoadBalancerController: true
+    kubeletExtraConfig:
+      kubeReserved:
+        cpu: "300m" # effective available 1700m (2000m-300m)
+        memory: "300Mi" # effective available 7892Mi (8192MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      kubeReservedCgroup: "/kube-reserved"
+      systemReserved:
+        cpu: "300m" # effective available 1400m (1700m-300m)
+        memory: "300Mi" # effective available 7592Mi (7892MiB−300MiB)
+        ephemeral-storage: "1Gi"
+      evictionHard:
+        memory.available: "200Mi" # all pods can collectively use 7392MiB or RAM
+        nodefs.available: "10%"
+      featureGates:
+        RotateKubeletServerCertificate: true
+  # also you can dunamically/on-demand create and add
+  # stateless node-groups as per clienrs specifications here

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bob
+  namespace: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bob
+  template:
+    metadata:
+      labels:
+        app: bob
+    spec:
+      containers:
+      - name: bob
+        image: ubuntu:latest
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - |
+          echo "[$(date)] initializing"
+          tail -f /dev/null
+        volumeMounts:
+        - name: traefik-volume
+          mountPath: /data
+      volumes:
+        - name: traefik-volume
+          persistentVolumeClaim:
+            claimName: traefik

@@ -962,15 +962,8 @@ affinity: {}
 #                 - {{ template "traefik.name" . }}
 #         topologyKey: kubernetes.io/hostname
 nodeSelector: 
-  lifecycle: "stable"     
-  node-dist: "eco"
   size: "cr-28"
   intent: "frigga"
-tolerations: 
-  - key: "apps"
-    operator: "Equal"
-    value: "non-frigga"
-    effect: "NoSchedule"
 # -- nodeSelector is the simplest recommended form of node selection constraint.
 
 # -- Tolerations allow the scheduler to schedule pods with matching taints.

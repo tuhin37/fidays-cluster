@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-config-pv
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1024Gi
+  hostPath:
+    path: /mnt/disk1-4TB/jellyfin-config
+    type: Directory
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-cache-pv
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1024Gi
+  hostPath:
+    path: /mnt/disk1-4TB/jellyfin-cache
+    type: Directory
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-media-pv
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10204Gi
+  hostPath:
+    path: /mnt/disk1-4TB/media
+    type: Directory
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem

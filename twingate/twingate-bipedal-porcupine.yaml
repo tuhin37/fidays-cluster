@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twingate-bipedal-porcupine # <-- change this 
+  namespace: twingate
+spec:
+  replicas: 1  # Set the desired number of replicas
+  selector:
+    matchLabels:
+      app: twingate-bipedal-porcupine
+  template:
+    metadata:
+      labels:
+        app: twingate-bipedal-porcupine
+    spec:
+      containers:
+      - name: twingate-connector
+        image: twingate/connector:1
+        resources:
+          requests:
+            cpu: "10m"
+            memory: "10Mi"
+          limits:
+            cpu: "50m"
+            memory: "50Mi"
+        env:
+        - name: TWINGATE_NETWORK
+          value: "frigganet"
+        - name: TWINGATE_ACCESS_TOKEN
+          value: "eyJhbGciOiJFUzI1NiIsImtpZCI6IjNVVS1abnZJZUVhN0k5UnAtMEFpbHo3S1dTNGh1ZnhocU8teVo5eGUxTlUiLCJ0eXAiOiJEQVQifQ.eyJudCI6IkFOIiwiYWlkIjoiMjM3MTkzIiwiZGlkIjoiMTI1NjkwNyIsImp0aSI6ImNmMTExMzYyLTA2ZDItNDY4OC1iYjJmLTY3NjNjNWRlNmNjOCIsImlzcyI6InR3aW5nYXRlIiwiYXVkIjoiZnJpZ2dhbmV0IiwiZXhwIjoxNzA4ODA2OTE2LCJpYXQiOjE3MDg4MDMzMTYsInZlciI6IjQiLCJ0aWQiOiI2MTE4NiIsInJudyI6MTcwODgwMzY1Nywicm5ldGlkIjoiOTQ4OTYifQ.9Q9wRMtw3jzwO49_cRvED_SRfEIDiHLRZ-XnLHGetILFcaFNcJXB25yRIB3ebFeEbYjqhZN1ZQX3Q_i0ihj2Dw"
+        - name: TWINGATE_REFRESH_TOKEN
+          value: "jKhObxOrRm9t-iddlq0lKip3KsSraB-QJnGTMBk_MbdmwhNcuOGcEg8hoONlqWJZwKIQaXPL1rdklT0IxE3PFolsMmdjO9mnRLoTGOmgkvrPMKe3aDeGB-i3jTLTWcdabnfGCw"
+        - name: TWINGATE_LABEL_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: TWINGATE_LOG_ANALYTICS
+          value: "v2"
+        - name: SYSCTL_NET_IPV4_PING_GROUP_RANGE
+          value: "0 2147483647"
+        # Add any additional environment variables as needed
+          # Add resource requests and limits if necessary
+      restartPolicy: Always  # or set to your desired restart policy
+      nodeSelector: 
+        size: "cr-28"
+        intent: "frigga"
+      
+      # tolerations: # now it can be scheduled in frigga node groups
+      # - key: apps
+      #   operator: Equal
+      #   value: non-frigga
+      #   effect: NoSchedule

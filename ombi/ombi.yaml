@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ombi-deployment
+  namespace: drag-media
+spec:
+  replicas: 1 # Adjust as needed
+  selector:
+    matchLabels:
+      app: ombi
+  template:
+    metadata:
+      labels:
+        app: ombi
+    spec:
+      containers:
+        - name: ombi-container
+          image: lscr.io/linuxserver/ombi:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Asia/Kolkata"
+            - name: BASE_URL
+              value: "/ombi" #optional
+          ports:
+            - containerPort: 3579
+          volumeMounts:
+            - name: ombi-volume
+              mountPath: /config
+      volumes:
+        - name: ombi-volume
+          persistentVolumeClaim:
+            claimName: ombi-pvc
+      nodeSelector:
+        intent: frigga
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ombi-svc
+  namespace: drag-media
+spec:
+  selector:
+    app: ombi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3579
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ombi-pvc
+  namespace: drag-media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn # Replace with your preferred storage class name
+  resources:
+    requests:
+      storage: 256Mi # Adjust the storage size as needed
+
+
+# --------------------------------------------
+# https://www.youtube.com/watch?v=jLmsoabsCZk&t=557s

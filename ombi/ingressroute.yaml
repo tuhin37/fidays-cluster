@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ombi-ir
+  namespace: drag-media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`ombi.dragnet.in`)
+      kind: Rule
+      services:
+        - name: ombi-svc
+          port: 80
+  tls:
+    certResolver: letsencrypt-prod

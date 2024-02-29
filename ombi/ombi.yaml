@@ -35,7 +35,7 @@ spec:
           persistentVolumeClaim:
             claimName: ombi-pvc
       nodeSelector:
-        intent: frigga
+        intent: jf
 ---
 apiVersion: v1
 kind: Service

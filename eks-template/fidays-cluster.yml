@@ -1058,11 +1058,13 @@ nodeGroups:
       lifecycle: premium # all nodes are on-demand
       size: cr-28 # this node has 2vCPU and 8GB RAM
       intent: jf # intended to client's stateless workloads
+      storage: longhorn
       aws.amazon.com/spot: "true"
     tags:
       k8s.io/cluster-autoscaler/node-template/label/lifecycle: premium
       k8s.io/cluster-autoscaler/node-template/label/size: cr-28
       k8s.io/cluster-autoscaler/node-template/label/intent: jf
+      k8s.io/cluster-autoscaler/node-template/label/storage: longhorn
     iam:
       withAddonPolicies:
         autoScaler: true
